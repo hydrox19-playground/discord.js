@@ -134,7 +134,7 @@ class WebSocketManager extends EventEmitter {
       throw error.httpStatus === 401 ? invalidToken : error;
     });
 
-    const { total, remaining } = sessionStartLimit;
+    const { total, remaining, max_concurrency } = sessionStartLimit;
 
     this.debug(`Fetched Gateway Information
     URL: ${gatewayURL}
@@ -158,7 +158,11 @@ class WebSocketManager extends EventEmitter {
     this.debug(`Spawning shards: ${shards.join(', ')}`);
     this.shardQueue = new Set(shards.map(id => new WebSocketShard(this, id)));
 
-    return this.createShards();
+    for (const i = 0; i < max_concurrency; i++) {
+      this.createShards();
+    }
+
+    return null;
   }
 
   /**
